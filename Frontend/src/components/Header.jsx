@@ -60,7 +60,7 @@ const Header = ({ toggleSidebar }) => {
             <ChevronDown className="w-4 h-4" />
           </div> */}
           <Link
-            href="/login"
+            href="http://localhost:5000/auth/google"
             className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#47c0e8] to-[#3b82f6] text-white font-medium text-sm hover:opacity-90 transition"
           >
             Login
