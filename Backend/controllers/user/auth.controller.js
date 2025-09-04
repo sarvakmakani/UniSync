@@ -1,6 +1,6 @@
-import passport from "../utils/passport.js";
-import { ApiError } from "../utils/ApiError.js"; // Optional if you use custom errors
-import { User } from "../models/user.model.js";
+import passport from "../../utils/passport.js";
+import { ApiError } from "../../utils/ApiError.js"; // Optional if you use custom errors
+import { User } from "../../models/user.model.js";
 
 
 // Helper function: generate tokens and save refresh token in DB

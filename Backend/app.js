@@ -25,8 +25,19 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 
-import passportRouter from "./routes/auth.route.js";
-app.use("/auth",passportRouter)
+import authRouter from "./routes/user/auth.route.js";
+import cieRouter from "./routes/user/cie.route.js";
+import eventRouter from "./routes/user/event.route.js";
+import formRouter from "./routes/user/form.route.js";
+import pollRouter from "./routes/user/poll.route.js";
+import vaultRouter from "./routes/user/vault.route.js";
+
+app.use("/auth",authRouter)
+app.use("/cie",cieRouter)
+app.use("/event",eventRouter)
+app.use("/form",formRouter)
+app.use("/poll",pollRouter)
+app.use("/vault",vaultRouter)
 
 app.use('/',(req,res)=>{
     res.send('404: page not found')
