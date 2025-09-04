@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
+import ApiError from "../utils/ApiError.js";
 
 const isAdmin=asyncHandler(async(req,res,next)=>{
     const _id=new mongoose.Types.ObjectId(req.user._id)

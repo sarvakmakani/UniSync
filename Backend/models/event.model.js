@@ -17,7 +17,7 @@ const eventSchema = new Schema(
         required:true,
         validate: {
             validator: function(value) {
-                return value > Date.now();
+                return value.getTime() > Date.now();
             },
             message: "Deadline must be in the future"
         }
@@ -38,8 +38,8 @@ const eventSchema = new Schema(
     },
     for:{
       type:String,
-      enum:["22DCE","22DCSE","22DIT","23DCE","23DCSE","23DIT","24DCE","24DCSE","24DIT","25DCE","25DCSE","25DIT"],
-      default:""
+      enum:["22DCE","22DCSE","22DIT","23DCE","23DCSE","23DIT","24DCE","24DCSE","24DIT","25DCE","25DCSE","25DIT","All"],
+      default:"All"
     }
   },
   { timestamps: true }

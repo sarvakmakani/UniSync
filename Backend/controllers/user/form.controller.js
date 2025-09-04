@@ -1,7 +1,45 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
 
-const getForms = asyncHandler(async(req,res)=>{
+import {Cie} from "../../models/cie.model.js"
+import {Event} from "../../models/event.model.js"
+import {Form} from "../../models/form.model.js"
+import {FormResponse} from "../../models/formResponse.model.js"
+import {Poll} from "../../models/poll.model.js"
+import {PollResponse} from "../../models/pollResponse.model.js"
+import {User} from "../../models/user.model.js"
+import {Vault} from "../../models/vault.model.js"
+import ApiResponse from "../../utils/ApiResponse.js";
 
+const getForms = asyncHandler(async(req,res)=>{
+    const {idNo} =req.user
+    const year_dept = idNo.trim(0,-3)
+    let forms=await Form.aggregate([
+        {
+            $match:{
+                $and: [
+                    { date: { $gt: new Date() } }, 
+                    {
+                        $or: [
+                            { for: year_dept }, 
+                            { for: "All" }      
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            $project:{
+                uploadedBy:0,
+                for:0,
+                __v:0
+            }
+        }
+    ])
+    
+    return res
+    .json(
+        new ApiResponse(200,forms,"forms fetched successfully")
+    )   
 })
 
 export {

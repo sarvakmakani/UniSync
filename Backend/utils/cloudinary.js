@@ -14,7 +14,7 @@ cloudinary.config({
 const uploadOnCloudinary = (fileBuffer) => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
-      { resource_type: "auto" },
+      { resource_type: "auto", format:"pdf" },
       (error, result) => {
         if (error) reject(error);
         else resolve(result);
