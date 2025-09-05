@@ -12,7 +12,9 @@ import ApiResponse from "../../utils/ApiResponse.js";
 
 const getCies = asyncHandler(async(req,res)=>{
     const {idNo} =req.user
-    const year_dept = idNo.trim(0,-3)
+    
+    const year_dept = idNo.slice(0,-3)
+    console.log(year_dept);
 
     let cies=await Cie.aggregate([
         {

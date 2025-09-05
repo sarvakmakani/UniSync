@@ -9,7 +9,7 @@ const router = Router();
 router.use(verifyJWT)
 
 router.route("/").get(getPolls)
-router.route("/:id").get(votePoll)
+router.route("/:id").post(votePoll)
 
 
 export default router;

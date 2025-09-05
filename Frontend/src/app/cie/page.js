@@ -1,30 +1,35 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Megaphone, CalendarDays, User } from "lucide-react";
+import { Megaphone, CalendarDays, User, MapPin, Clock } from "lucide-react";
 import { motion } from "framer-motion";
+import axios from "axios"; // ✅ don't forget this import
 
 export default function AnnouncementsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
-  const announcements = [
-    {
-      id: 1,
-      professor: "Prof. Kashyap Patel",
-      message:
-        "We are having ML CIE on Thursday, 28/08/2025 in 4th slot (2:20 PM - 3:20 PM).",
-      date: "26 Aug 2025",
-    },
-    {
-      id: 2,
-      professor: "Prof. Premal Patel",
-      message:
-        "DAA CIE scheduled on Friday, 29/08/2025 during 2nd slot (10:10 AM - 11:10 AM).",
-      date: "26 Aug 2025",
-    },
-  ];
+  //fetching
+  const [announcements, setAnnouncements] = useState([]);
+
+  const fetchCies = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/cie", {
+        withCredentials: true,
+      });
+
+      setAnnouncements(res.data.data);
+      console.log("data: ",res.data);
+    } catch (err) {
+      console.error("Error fetching CIE announcements:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCies();
+  }, []);
+  //ending
 
   return (
     <div className="flex h-screen bg-slate-950 text-white">
@@ -53,7 +58,7 @@ export default function AnnouncementsPage() {
           <div className="grid gap-5">
             {announcements.map((a, i) => (
               <motion.div
-                key={a.id}
+                key={i}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
@@ -61,17 +66,42 @@ export default function AnnouncementsPage() {
                            rounded-2xl p-6 shadow-md hover:shadow-xl 
                            transition transform hover:-translate-y-1"
               >
+                {/* Header: Uploader + Date */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <User className="w-5 h-5 text-[#47c0e8]" />
-                    <h2 className="font-semibold text-lg">{a.professor}</h2>
+                    <h2 className="font-semibold text-lg">
+                      {a.uploadedBy?.[0]?.name || "Unknown"}
+                    </h2>
                   </div>
                   <div className="flex items-center gap-1 text-sm text-gray-400">
                     <CalendarDays className="w-4 h-4" />
-                    <span>{a.date}</span>
+                    <span>
+                      {new Date(a.date).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
                   </div>
                 </div>
-                <p className="text-gray-300 leading-relaxed">{a.message}</p>
+
+                {/* Description */}
+                <p className="text-gray-300 leading-relaxed mb-3">
+                  {a.description}
+                </p>
+
+                {/* Extra info: Time + Venue */}
+                <div className="flex items-center gap-6 text-sm text-gray-400">
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-4 h-4 text-[#47c0e8]" />
+                    <span>{a.time}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4 text-[#47c0e8]" />
+                    <span>{a.venue}</span>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>

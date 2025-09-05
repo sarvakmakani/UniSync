@@ -8,7 +8,12 @@ const updateForm = asyncHandler(async(req,res)=>{
 
 })
 
+const getForms = asyncHandler(async(req,res)=>{
+
+})
+
 export {
     addForm,
-    updateForm
+    updateForm,
+    getForms
 }

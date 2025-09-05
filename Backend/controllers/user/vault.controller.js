@@ -34,33 +34,31 @@ const getDocuments = asyncHandler(async(req,res)=>{
     )
 })
 
-const addDocument = asyncHandler(async(req,res)=>{
-    const userId=new mongoose.Types.ObjectId(req.user._id)
-    const {name}=req.body
+const addDocument = asyncHandler(async (req, res) => {
+  const userId = new mongoose.Types.ObjectId(req.user._id);
+  const { name } = req.body;
 
-    if(!req.file) return ApiError(401,"document not uploaded")
-    const fileUrl=req.file.buffer
-    const document=await uploadOnCloudinary(fileUrl)
-    if (!document) throw new ApiError(400, "document uplodation failed")
-    
-    console.log(document);
-    
+  if (!req.file) throw new ApiError(401, "document not uploaded");
 
-    const addedDocument=await Vault.create({
-        uploadedBy:userId,
-        document:document.secure_url,
-        name:name
-    })
-    return res
-    .json(
-        new ApiResponse(201,addedDocument,"document added successfully")
-    )
-})
+  const document = await uploadOnCloudinary(req.file.buffer, req.file.originalname);
+  if (!document) throw new ApiError(400, "document upload failed");
+
+  const addedDocument = await Vault.create({
+    uploadedBy: userId,
+    document: document.secure_url,
+    name: name
+  });
+
+  return res.json(
+    new ApiResponse(201, addedDocument, "document added successfully")
+  );
+});
+
 
 const deleteDocument = asyncHandler(async(req,res)=>{
     const documentId=new mongoose.Types.ObjectId(req.params.id)
     const document=await Vault.findByIdAndDelete(documentId)
-    if(!document) return ApiError(500,"document deletion failed")
+    if(!document) return new ApiError(500,"document deletion failed")
     return res
     .json(
         new ApiResponse(201,{},"document deleted successfully")

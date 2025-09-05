@@ -8,7 +8,22 @@ const updateCie = asyncHandler(async(req,res)=>{
 
 })
 
+const myCies = asyncHandler(async(req,res)=>{
+
+})
+
+const pastCies = asyncHandler(async(req,res)=>{
+
+})
+
+const upcomingCies = asyncHandler(async(req,res)=>{
+
+})
+
 export {
     addCie,
-    updateCie
+    updateCie,
+    myCies,
+    pastCies,
+    upcomingCies
 }
