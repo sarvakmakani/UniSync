@@ -10,7 +10,7 @@ import { upload } from "../../middlewares/multer.middleware.js";
 const router = Router();
 router.use(verifyJWT)
 
-router.route("/").get(getDocuments).post(upload.single("document"),addDocument)
+router.route("/").get(getDocuments).post(upload.single("file"),addDocument)
 router.route("/:id").delete(deleteDocument)
 
 export default router;

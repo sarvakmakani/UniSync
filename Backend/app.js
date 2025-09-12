@@ -24,6 +24,17 @@ app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 
+import adminCieRouter from "./routes/admin/cie.route.js";
+import adminEventRouter from "./routes/admin/event.route.js";
+import adminFormRouter from "./routes/admin/form.route.js";
+import adminPollRouter from "./routes/admin/poll.route.js";
+import adminVaultRouter from "./routes/admin/vault.route.js";
+
+app.use("/admin/cie",adminCieRouter)
+app.use("/admin/event",adminEventRouter)
+app.use("/admin/form",adminFormRouter)
+app.use("/admin/poll",adminPollRouter)
+app.use("/admin/vault",adminVaultRouter)
 
 import authRouter from "./routes/user/auth.route.js";
 import cieRouter from "./routes/user/cie.route.js";

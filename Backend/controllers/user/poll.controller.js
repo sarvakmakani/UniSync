@@ -14,6 +14,7 @@ import mongoose from "mongoose";
 
 const getPolls = asyncHandler(async (req, res) => {
   const { idNo } = req.user;
+  const  userId = new mongoose.Types.ObjectId(req.user._id);
   const year_dept = idNo.slice(0, -3);
   console.log(year_dept);
 
@@ -32,32 +33,43 @@ const getPolls = asyncHandler(async (req, res) => {
       }
     },
     {
+      $lookup: {
+        from: "pollresponses",          // collection name
+        let: { pollId: "$_id" },        // current poll _id
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$pollId", "$$pollId"] },    // match poll
+                  { $eq: ["$userId", userId] }  // match current user
+                ]
+              }
+            }
+          },
+          { $limit: 1 } // we only need to know if exists
+        ],
+        as: "userVote"
+      }
+    },
+    {
+      $addFields: {
+        alreadyVoted: { $gt: [{ $size: "$userVote" }, 0] } // true if userVote array has entries
+      }
+    },
+    {
       $project: {
         name: 1,
         deadline: 1,
         options: 1,
-        _id: 1
+        _id: 1,
+        alreadyVoted:1
       }
     }
   ]);
-
-  // add alreadyVoted flag
-  const pollsWithVoteStatus = await Promise.all(
-    polls.map(async (poll) => {
-      const voted = await PollResponse.findOne({
-        pollId: poll._id,
-        userId: req.user._id
-      });
-
-      return { 
-        ...poll,                 // ✅ spread plain object
-        alreadyVoted: !!voted    // true if user already voted
-      };
-    })
-  );
-
+  
   return res.json(
-    new ApiResponse(200, pollsWithVoteStatus, "polls fetched successfully")
+    new ApiResponse(200, polls, "polls fetched successfully")
   );
 });
 
@@ -67,7 +79,7 @@ const votePoll = asyncHandler(async(req,res)=>{
     const id=new mongoose.Types.ObjectId(req.params.id)
     const userId=new mongoose.Types.ObjectId(req.user._id)
 
-    const poll=await Poll.findById(id)
+    let poll=await Poll.findById(id)
     if(!poll) throw new ApiError(404,"poll not found")
 
     if(optionIdx>=poll.options.length || optionIdx<0) return ApiError(401,"invalid option index")
@@ -82,6 +94,14 @@ const votePoll = asyncHandler(async(req,res)=>{
     })    
     if(!vote) throw new ApiError(500,"failed to vote")
     
+    await Poll.findByIdAndUpdate(id, {
+      $inc: { 
+        [`voteCounts.${optionIdx}`]: 1, // increment option count
+        totalVotes: 1                   // increment total votes
+      }
+    });
+    
+
     return res
     .json(
         new ApiResponse(200,vote,"voted successfully")

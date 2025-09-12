@@ -40,7 +40,13 @@ const addDocument = asyncHandler(async (req, res) => {
 
   if (!req.file) throw new ApiError(401, "document not uploaded");
 
-  const document = await uploadOnCloudinary(req.file.buffer, req.file.originalname);
+  // Pass both buffer + frontend-provided name
+  const document = await uploadOnCloudinary(
+    req.file.buffer,
+    name,                    // 👈 use frontend name
+    req.file.originalname    // 👈 keep extension from original
+  );
+
   if (!document) throw new ApiError(400, "document upload failed");
 
   const addedDocument = await Vault.create({

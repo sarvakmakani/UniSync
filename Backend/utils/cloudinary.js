@@ -10,16 +10,17 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY, 
   api_secret: process.env.CLOUDINARY_API_SECRET 
 });
+
 const uploadOnCloudinary = (fileBuffer, originalName) => {
   return new Promise((resolve, reject) => {
-    // Extract extension (like .pdf) from original filename
-    const ext = originalName.split('.').pop();
+    const ext = originalName.split(".").pop();
 
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        resource_type: "raw",
-        public_id: `documents/${Date.now()}`, // folder + unique name
-        format: ext                           // keep correct extension
+        resource_type: "raw",              // allows PDFs, docs, zip, etc.
+        public_id: `documents/${Date.now()}`, // unique file name
+        format: ext,
+        type: "upload"                     // permanent storage
       },
       (error, result) => {
         if (error) reject(error);

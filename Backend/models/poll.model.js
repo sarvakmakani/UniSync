@@ -18,6 +18,14 @@ const pollSchema = new Schema(
         }
     },
     options:[{type:String,required:true}],
+    voteCounts: {
+      type: [Number],
+      default: []  // one number per option
+    },
+    totalVotes: {
+      type: Number,
+      default: 0
+    },
     uploadedBy:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'User',

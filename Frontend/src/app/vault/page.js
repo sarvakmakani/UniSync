@@ -1,9 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { UploadCloud, Eye, Download, Trash2, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 
 export default function VaultPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -13,6 +14,23 @@ export default function VaultPage() {
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
+
+  const fetchVaults = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/vault", {
+        withCredentials: true,
+      });
+
+      setVault(res.data.data);
+      console.log("data: ",res.data);
+    } catch (err) {
+      console.error("Error fetching EVENT announcements:", err);
+    }
+  };
+  useEffect(() => {
+      fetchVaults();
+  }, []);
+
   // Handle file change
   const handleFileChange = (e) => setFile(e.target.files[0]);
   const handleDrop = (e) => {
@@ -21,23 +39,70 @@ export default function VaultPage() {
   };
   const handleDragOver = (e) => e.preventDefault();
 
-  // Upload
-  const handleUpload = () => {
-    if (file && fileName) {
-      const newFile = {
-        id: Date.now(),
-        name: fileName,
-        file: file,
-        url: URL.createObjectURL(file),
-      };
-      setVault((prev) => [...prev, newFile]);
+
+  const handleUpload = async () => {
+    if (!file || !fileName) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);      // file binary
+      formData.append("name", fileName);  // file name from frontend
+
+      // Replace with your backend endpoint
+      const res = await axios.post("http://localhost:5000/vault", formData, {
+        withCredentials: true,
+      });
+
+      // Response contains saved document
+      const uploadedFile = res.data.data;
+
+      // Add to vault state
+      setVault((prev) => [
+        ...prev,
+        {
+          id: uploadedFile._id,
+          name: uploadedFile.name,
+          file: file,
+          url: uploadedFile.document, // Cloudinary URL
+        },
+      ]);
+
+      // Clear inputs
       setFile(null);
       setFileName("");
-    }
+    } catch (error) {
+        // Axios error with response from server
+        if (error.response) {
+          console.error("Upload failed:", error.response.data);
+          alert(`Upload failed: ${error.response.data.message || "Server error"}`);
+        } 
+        // Request made but no response (network error)
+        else if (error.request) {
+          console.error("No response received:", error.request);
+          alert("Upload failed: No response from server");
+        } 
+        // Something else
+        else {
+          console.error("Error setting up request:", error.message);
+          alert(`Upload failed: ${error.message}`);
+        }
+      }
   };
 
-  const handleDelete = (id) => {
-    setVault((prev) => prev.filter((f) => f.id !== id));
+
+  const handleDelete = async (_id) => {
+    try {
+      // Call backend DELETE API
+      await axios.delete(`http://localhost:5000/vault/${_id}`, {
+        withCredentials: true, 
+      });
+
+      // Update frontend vault state
+      setVault((prev) => prev.filter((doc) => doc._id !== _id));
+    } catch (error) {
+      console.error("Delete failed:", error.response?.data || error.message);
+      alert("Failed to delete document");
+    }
   };
 
   return (
@@ -134,7 +199,7 @@ export default function VaultPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {vault.map((doc, index) => (
                     <motion.div
-                      key={doc.id}
+                      key={doc._id}
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -30 }}
@@ -167,7 +232,7 @@ export default function VaultPage() {
                           <Download size={14} /> Download
                         </a>
                         <button
-                          onClick={() => handleDelete(doc.id)}
+                          onClick={() => handleDelete(doc._id)}
                           className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-red-100/20 text-red-400 hover:bg-red-100/30 transition"
                         >
                           <Trash2 size={14} /> Delete
