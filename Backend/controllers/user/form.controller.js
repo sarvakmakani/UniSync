@@ -1,13 +1,7 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
 
-import {Cie} from "../../models/cie.model.js"
-import {Event} from "../../models/event.model.js"
 import {Form} from "../../models/form.model.js"
 import {FormResponse} from "../../models/formResponse.model.js"
-import {Poll} from "../../models/poll.model.js"
-import {PollResponse} from "../../models/pollResponse.model.js"
-import {User} from "../../models/user.model.js"
-import {Vault} from "../../models/vault.model.js"
 import ApiResponse from "../../utils/ApiResponse.js";
 
 const getForms = asyncHandler(async (req, res) => {

@@ -47,36 +47,33 @@ const updateEvent = asyncHandler(async(req,res)=>{
 })
 
 const getEvents = asyncHandler(async(req,res)=>{
-    let pastEvents=await Event.aggregate([
-        {
-            $match:{ date: { $lt: new Date() } }, 
-        },
-        {
-            $project:{
-                uploadedBy:0,
-                for:0,
-                __v:0,
-                _id:0
-            }
+    
+    const eventProjection={
+        $project:{
+            uploadedBy:0,
+            for:0,
+            __v:0,
+            _id:0
         }
-    ])
+    }
 
-    let upcomingEvents=await Event.aggregate([
+    const result=await Event.aggregate([
         {
-            $match:{ date: { $gt: new Date() } }, 
-        },
-        {
-            $project:{
-                uploadedBy:0,
-                for:0,
-                __v:0,
-                _id:0
+            $facet:{
+                pastEvents:[
+                    { $match:{ date: { $lt: new Date() } }, },
+                    eventProjection
+                ],
+                upcomingEvents:[
+                    { $match:{ date: { $gt: new Date() } }, },
+                    eventProjection
+                ],
             }
         }
     ])
     return res
     .json(
-        new ApiResponse(200,{pastEvents:pastEvents,upcomingEvents:upcomingEvents},"events fetched successfully")
+        new ApiResponse(200,result[0],"events fetched successfully")
     )
 })
 

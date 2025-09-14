@@ -44,6 +44,7 @@ import pollRouter from "./routes/user/poll.route.js";
 import vaultRouter from "./routes/user/vault.route.js";
 import dashboardRouter from "./routes/user/dashboard.route.js"
 
+
 app.use("/auth",authRouter)
 app.use("/cie",cieRouter)
 app.use("/event",eventRouter)
@@ -51,6 +52,7 @@ app.use("/form",formRouter)
 app.use("/poll",pollRouter)
 app.use("/vault",vaultRouter)
 app.use("/dashboard",dashboardRouter)
+
 
 app.use("/",(req,res)=>{
     res.send("404: Page Not Found")

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { UploadCloud, Eye, Download, Trash2, FileText } from "lucide-react";
@@ -11,24 +11,25 @@ export default function VaultPage() {
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("");
   const [vault, setVault] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState(null);
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
-
 
   const fetchVaults = async () => {
     try {
       const res = await axios.get("http://localhost:5000/vault", {
         withCredentials: true,
       });
-
       setVault(res.data.data);
-      console.log("data: ",res.data);
+      console.log("data: ", res.data);
     } catch (err) {
-      console.error("Error fetching EVENT announcements:", err);
+      console.error("Error fetching vault docs:", err);
     }
   };
+
   useEffect(() => {
-      fetchVaults();
+    fetchVaults();
   }, []);
 
   // Handle file change
@@ -39,65 +40,50 @@ export default function VaultPage() {
   };
   const handleDragOver = (e) => e.preventDefault();
 
-
   const handleUpload = async () => {
     if (!file || !fileName) return;
 
     try {
       const formData = new FormData();
-      formData.append("file", file);      // file binary
-      formData.append("name", fileName);  // file name from frontend
+      formData.append("file", file); // file binary
+      formData.append("name", fileName); // file name from frontend
 
-      // Replace with your backend endpoint
       const res = await axios.post("http://localhost:5000/vault", formData, {
         withCredentials: true,
       });
 
-      // Response contains saved document
       const uploadedFile = res.data.data;
 
-      // Add to vault state
       setVault((prev) => [
         ...prev,
         {
-          id: uploadedFile._id,
+          _id: uploadedFile._id,
           name: uploadedFile.name,
-          file: file,
           url: uploadedFile.document, // Cloudinary URL
         },
       ]);
 
-      // Clear inputs
       setFile(null);
       setFileName("");
     } catch (error) {
-        // Axios error with response from server
-        if (error.response) {
-          console.error("Upload failed:", error.response.data);
-          alert(`Upload failed: ${error.response.data.message || "Server error"}`);
-        } 
-        // Request made but no response (network error)
-        else if (error.request) {
-          console.error("No response received:", error.request);
-          alert("Upload failed: No response from server");
-        } 
-        // Something else
-        else {
-          console.error("Error setting up request:", error.message);
-          alert(`Upload failed: ${error.message}`);
-        }
+      if (error.response) {
+        console.error("Upload failed:", error.response.data);
+        alert(`Upload failed: ${error.response.data.message || "Server error"}`);
+      } else if (error.request) {
+        console.error("No response received:", error.request);
+        alert("Upload failed: No response from server");
+      } else {
+        console.error("Error setting up request:", error.message);
+        alert(`Upload failed: ${error.message}`);
       }
+    }
   };
-
 
   const handleDelete = async (_id) => {
     try {
-      // Call backend DELETE API
       await axios.delete(`http://localhost:5000/vault/${_id}`, {
-        withCredentials: true, 
+        withCredentials: true,
       });
-
-      // Update frontend vault state
       setVault((prev) => prev.filter((doc) => doc._id !== _id));
     } catch (error) {
       console.error("Delete failed:", error.response?.data || error.message);
@@ -216,14 +202,15 @@ export default function VaultPage() {
 
                       {/* Actions */}
                       <div className="flex gap-2 flex-wrap mt-auto">
-                        <a
-                          href={doc.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() => {
+                            setSelectedDoc(doc);
+                            setShowModal(true);
+                          }}
                           className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-green-100/20 text-green-400 hover:bg-green-100/30 transition"
                         >
                           <Eye size={14} /> View
-                        </a>
+                        </button>
                         <a
                           href={doc.url}
                           download={doc.name}
@@ -246,6 +233,34 @@ export default function VaultPage() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* PDF Modal */}
+      <AnimatePresence>
+        {showModal && selectedDoc && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="bg-slate-900 p-4 rounded-xl w-11/12 h-4/5 relative">
+              <button
+                className="absolute top-2 right-2 text-white text-xl font-bold"
+                onClick={() => setShowModal(false)}
+              >
+                ×
+              </button>
+              <h2 className="text-white mb-2">{selectedDoc.name}</h2>
+              <iframe
+                src={selectedDoc.url}
+                width="100%"
+                height="100%"
+                title={selectedDoc.name}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

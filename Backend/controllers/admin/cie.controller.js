@@ -5,7 +5,7 @@ import ApiResponse from "../../utils/ApiResponse.js";
 import { Cie } from "../../models/cie.model.js";
 
 const addCie = asyncHandler(async(req,res)=>{
-    const userId=new mongoose.Types.ObjectId(req.us._id)
+    const userId=new mongoose.Types.ObjectId(req.user._id)
     const {description,date,time,venue} = req.body
     let forWhom=req.body.for
     if(!description || !date || !time || !venue) throw new ApiError(401,"provide all fields")
@@ -48,102 +48,64 @@ const updateCie = asyncHandler(async(req,res)=>{
 })
 
 const getCies = asyncHandler(async(req,res)=>{
-    const userId=new mongoose.Types.ObjectId(req.us._id)
-    let myCies=await Cie.aggregate([
-        {
-            $match:{ uploadedBy:userId }
-        },
-        {
-            $lookup:{
-                from:'users',
-                localField:'uploadedBy',
-                foreignField:'_id',
-                as:'uploadedBy',
-                pipeline:[{
-                    $project:{
-                        name:1,
-                        email:1,
-                        avatar:1,
-                        _id:0
-                    }
-                }]
-            }
-        },
-        {
-            $project:{
-                for:0,
-                __v:0,
-                _id:0,
-                createdAt:0,
-                updatedAt:0
-            }
-        }
-    ])
+    const userId=new mongoose.Types.ObjectId(req.user._id)
 
-    let pastCies=await Cie.aggregate([
-        {
-            $match:{ date: { $lt: new Date() } }
+    const userLookup = {
+        $lookup: {
+        from: "users",
+        localField: "uploadedBy",
+        foreignField: "_id",
+        as: "uploadedBy",
+        pipeline: [
+            {
+            $project: {
+                name: 1,
+                email: 1,
+                avatar: 1,
+                _id: 0,
+            },
+            },
+        ],
         },
-        {
-            $lookup:{
-                from:'users',
-                localField:'uploadedBy',
-                foreignField:'_id',
-                as:'uploadedBy',
-                pipeline:[{
-                    $project:{
-                        name:1,
-                        email:1,
-                        avatar:1,
-                        _id:0
-                    }
-                }]
-            }
-        },
-        {
-            $project:{
-                for:0,
-                __v:0,
-                _id:0,
-                createdAt:0,
-                updatedAt:0
-            }
-        }
-    ])
+    }
 
-    let upcomingCies=await Cie.aggregate([
-        {
-            $match:{ date: { $gt: new Date() } }
+    const cieProjection = {
+        $project: {
+        for: 0,
+        __v: 0,
+        _id: 0,
+        createdAt: 0,
+        updatedAt: 0,
         },
+    }
+
+    const result=await Cie.aggregate([
         {
-            $lookup:{
-                from:'users',
-                localField:'uploadedBy',
-                foreignField:'_id',
-                as:'uploadedBy',
-                pipeline:[{
-                    $project:{
-                        name:1,
-                        email:1,
-                        avatar:1,
-                        _id:0
-                    }
-                }]
-            }
-        },
-        {
-            $project:{
-                for:0,
-                __v:0,
-                _id:0,
-                createdAt:0,
-                updatedAt:0
+            $facet:{
+                myCies:[
+                    { $match:{ uploadedBy:userId } },
+                    userLookup,
+                    {$unwind:'$uploadedBy'},
+                    cieProjection
+                ],
+                pastCies:[
+                    { $match:{ date: { $lt: new Date() } } },
+                    userLookup,
+                    {$unwind:'$uploadedBy'},
+                    cieProjection
+                ],
+                upcomingCies:[
+                    { $match:{ date: { $gt: new Date() } } },
+                    userLookup,
+                    {$unwind:'$uploadedBy'},
+                    cieProjection
+                ]
             }
         }
     ])
 
     return res.json(
-        new ApiResponse(200,{myCies:myCies,pastCies:pastCies,upcomingCies:upcomingCies},"cies fetched successfully")
+        new ApiResponse(200,result[0],"cies fetched successfully")
     )
 })
 

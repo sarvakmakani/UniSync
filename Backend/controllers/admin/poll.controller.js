@@ -45,42 +45,44 @@ const updatePoll = asyncHandler(async(req,res)=>{
 const getPolls = asyncHandler(async(req,res)=>{
     const userId=new mongoose.Types.ObjectId(req.user._id)
 
-    const withStats = [
+    const withStatsProjection = {
+        $project: {
+            name: 1,
+            deadline: 1,
+            options: 1,
+            for: 1,
+            totalVotes: 1,
+            voteCounts: 1,
+        }
+    }
+    
+    const result=await Poll.aggregate([
         {
-            $project: {
-                name: 1,
-                deadline: 1,
-                options: 1,
-                for: 1,
-                totalVotes: 1,
-                voteCounts: 1,
+            $facet:{
+                myPolls:[
+                    {
+                        $match: {uploadedBy:userId}
+                    },
+                    withStatsProjection
+                ],
+                pastPolls:[
+                    {
+                        $match: { deadline:{ $lt:new Date() } }
+                    },
+                    withStatsProjection
+                ],
+                upcomingPolls:[
+                    {
+                        $match: { deadline:{ $gt:new Date() } }
+                    },
+                    withStatsProjection
+                ],
             }
         }
-    ];
-
-    let myPolls = await Poll.aggregate([
-        {
-            $match: {uploadedBy:userId}
-        },
-        ...withStats
-    ]);
-
-    let pastPolls = await Poll.aggregate([
-        {
-            $match: { deadline:{ $lt:new Date() } }
-        },
-        ...withStats
-    ]);
-
-    let upcomingPolls = await Poll.aggregate([
-        {
-            $match: { deadline:{ $gt:new Date() } }
-        },
-        ...withStats
-    ]);
+    ])
 
     return res.json(
-        new ApiResponse(200,{myPolls:myPolls,pastPolls:pastPolls,upcomingPolls:upcomingPolls},"poll updated successfully")
+        new ApiResponse(200,result[0],"poll fetched successfully")
     )
 })
 

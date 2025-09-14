@@ -14,13 +14,12 @@ cloudinary.config({
 const uploadOnCloudinary = (fileBuffer, originalName) => {
   return new Promise((resolve, reject) => {
     const ext = originalName.split(".").pop();
-
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        resource_type: "raw",              // allows PDFs, docs, zip, etc.
-        public_id: `documents/${Date.now()}`, // unique file name
-        format: ext,
-        type: "upload"                     // permanent storage
+        resource_type: "raw",
+        folder: "documents",
+        public_id: `doc_${Date.now()}`,
+        access_mode: "public", // ✅ make public
       },
       (error, result) => {
         if (error) reject(error);
@@ -31,6 +30,7 @@ const uploadOnCloudinary = (fileBuffer, originalName) => {
     streamifier.createReadStream(fileBuffer).pipe(uploadStream);
   });
 };
+
 
 
 function getPublicIdFromUrl(url) {

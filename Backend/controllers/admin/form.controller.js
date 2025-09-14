@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { Event } from "../../models/event.model.js";
 import { Form } from "../../models/form.model.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
@@ -45,34 +44,57 @@ const updateForm = asyncHandler(async(req,res)=>{
 })
 
 const getForms = asyncHandler(async(req,res)=>{
-    let pastForms = await Form.aggregate([
-        {
-            $match: { deadline: { $lt: new Date() } }
-        },
-        {
-            $project: {
-                uploadedBy: 0,
-                for: 0,
-                __v: 0,
-            },
-        },
-    ]);
 
-    let upcomingForms = await Form.aggregate([
-        {
-            $match: { deadline: { $gt: new Date() } }
+    const userLookup = {
+        $lookup: {
+            from: "users",
+            localField: "uploadedBy",
+            foreignField: "_id",
+            as: "uploadedBy",
+            pipeline: [
+                {
+                    $project: {
+                        name: 1,
+                        email: 1,
+                        avatar: 1,
+                        _id: 0,
+                    },
+                },
+            ],
         },
-        {
-            $project: {
-                uploadedBy: 0,
-                for: 0,
-                __v: 0,
-            },
+    }
+
+    const formProjection={
+        $project: {
+            for: 0,
+            __v: 0,
+            createdAt: 0,
+            updatedAt: 0,
         },
-    ]);
+    }
+
+    const result=await Form.aggregate([
+        {
+            $facet:{
+                pastForms:[
+                    { $match: { deadline: { $lt: new Date() } } },
+                    userLookup,
+                    {$unwind:'$uploadedBy'},
+                    formProjection,
+                ],
+            
+                upcomingForms:[
+                    { $match: { deadline: { $gt: new Date() } } },
+                    userLookup,
+                    {$unwind:'$uploadedBy'},
+                    formProjection
+                ]
+            }
+        }
+    ])
 
     return res.json(
-        new ApiResponse(200,{pastForms:pastForms,upcomingForms:upcomingForms},"form added successfully")
+        new ApiResponse(200,result[0],"form fetched successfully")
     )
 })
 
