@@ -210,9 +210,9 @@ const Hero = () => {
       </div>
 
       {/* Recent Forms */}
-      <div className="bg-white shadow-lg rounded-2xl border border-gray-100 p-6 mt-10">
+      <div className="bg-slate-800 shadow-lg rounded-2xl border border-gray-100 p-6 mt-10">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+          <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-100">
             Recent Forms
           </h2>
           <button className="px-3 py-1 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200 transition">
@@ -224,7 +224,7 @@ const Hero = () => {
           {forms.map((form) => (
             <div
               key={form.id}
-              className="p-5 rounded-xl border border-gray-200 hover:shadow-md transition bg-gray-50"
+              className="p-5 rounded-xl border border-gray-500 hover:shadow-md transition bg-gray-50"
             >
               <div className="flex justify-between items-center mb-3">
                 <div>

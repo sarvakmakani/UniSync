@@ -44,9 +44,11 @@ const Header = ({ toggleSidebar }) => {
         {/* Right Section */}
         <div className="flex items-center gap-2 sm:gap-4">
           {/* Notification Bell */}
-          <button className="p-2 hover:bg-white/10 rounded-full transition">
+          <Link 
+          href='/notifications'
+          className="p-2 hover:bg-white/10 rounded-full transition">
             <Bell className="w-5 h-5" />
-          </button>
+          </Link>
 
           {/* Profile section */}
           {/* <div className="flex items-center gap-2 bg-[#324a91] px-3 py-1.5 rounded-full cursor-pointer hover:bg-[#3c599e] transition">

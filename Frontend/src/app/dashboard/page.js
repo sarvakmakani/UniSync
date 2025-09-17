@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import { motion } from "framer-motion";
+
 
 export default function DashboardPage() {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
