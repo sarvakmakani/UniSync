@@ -29,7 +29,13 @@ export default function AdminFormsPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.formLink || !formData.toWhom || !formData.deadline || !formData.createdBy) {
+    if (
+      !formData.title ||
+      !formData.formLink ||
+      !formData.toWhom ||
+      !formData.deadline ||
+      !formData.createdBy
+    ) {
       alert("Title, Form Link, Audience, Deadline, and Created By are required!");
       return;
     }
@@ -59,13 +65,87 @@ export default function AdminFormsPage() {
     setForms(forms.filter((form) => form.id !== id));
   };
 
+  // Split forms into upcoming and previous
+  const today = new Date().setHours(0, 0, 0, 0);
+
+  const upcomingForms = forms.filter(
+    (form) => new Date(form.deadline).setHours(0, 0, 0, 0) >= today
+  );
+
+  const previousForms = forms.filter(
+    (form) => new Date(form.deadline).setHours(0, 0, 0, 0) < today
+  );
+
+  // Reusable Table Component
+  const FormsTable = ({ formsList, title }) => (
+    <div className="bg-slate-800 rounded-2xl p-6 shadow-lg mb-8">
+      <h2 className="text-xl font-bold mb-4">{title}</h2>
+      {formsList.length === 0 ? (
+        <p className="text-slate-400">No forms available.</p>
+      ) : (
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-slate-900">
+              <th className="p-3 text-left">Title</th>
+              <th className="p-3 text-left">Audience</th>
+              <th className="p-3 text-left">Deadline</th>
+              <th className="p-3 text-left">Created By</th>
+              <th className="p-3 text-left">Created</th>
+              <th className="p-3 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {formsList.map((form) => (
+              <tr
+                key={form.id}
+                className="border-b border-slate-700 hover:bg-slate-700/30"
+              >
+                <td className="p-3">{form.title}</td>
+                <td className="p-3">{form.toWhom}</td>
+                <td className="p-3 text-yellow-300">{formatDate(form.deadline)}</td>
+                <td className="p-3">{form.createdBy}</td>
+                <td className="p-3 text-sm text-slate-400">{form.createdAt}</td>
+                <td className="p-3 flex gap-3">
+                  <a
+                    href={form.formLink}
+                    target="_blank"
+                    className="text-blue-400 hover:text-blue-600 flex items-center gap-1"
+                  >
+                    <ExternalLink size={16} /> Open Form
+                  </a>
+                  {form.responseLink && (
+                    <a
+                      href={form.responseLink}
+                      target="_blank"
+                      className="text-green-400 hover:text-green-600 flex items-center gap-1"
+                    >
+                      <ExternalLink size={16} /> Responses
+                    </a>
+                  )}
+                  <button
+                    onClick={() => handleDelete(form.id)}
+                    className="text-red-400 hover:text-red-600 flex items-center gap-1"
+                  >
+                    <Trash2 size={16} /> Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+
   return (
     <div className="p-6">
       {/* Add Form Section */}
       <div className="bg-slate-800 rounded-2xl p-6 shadow-lg mb-8">
         <h2 className="text-xl font-bold mb-4">Add New Google Form</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           {/* Title */}
           <div>
             <label className="block text-sm mb-1">Title *</label>
@@ -176,61 +256,11 @@ export default function AdminFormsPage() {
         </form>
       </div>
 
-      {/* Forms List Section */}
-      <div className="bg-slate-800 rounded-2xl p-6 shadow-lg">
-        <h2 className="text-xl font-bold mb-4">All Forms</h2>
-        {forms.length === 0 ? (
-          <p className="text-slate-400">No forms added yet.</p>
-        ) : (
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-slate-900">
-                <th className="p-3 text-left">Title</th>
-                <th className="p-3 text-left">Audience</th>
-                <th className="p-3 text-left">Deadline</th>
-                <th className="p-3 text-left">Created By</th>
-                <th className="p-3 text-left">Created</th>
-                <th className="p-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {forms.map((form) => (
-                <tr key={form.id} className="border-b border-slate-700 hover:bg-slate-700/30">
-                  <td className="p-3">{form.title}</td>
-                  <td className="p-3">{form.toWhom}</td>
-                  <td className="p-3 text-yellow-300">{formatDate(form.deadline)}</td>
-                  <td className="p-3">{form.createdBy}</td>
-                  <td className="p-3 text-sm text-slate-400">{form.createdAt}</td>
-                  <td className="p-3 flex gap-3">
-                    <a
-                      href={form.formLink}
-                      target="_blank"
-                      className="text-blue-400 hover:text-blue-600 flex items-center gap-1"
-                    >
-                      <ExternalLink size={16} /> Open Form
-                    </a>
-                    {form.responseLink && (
-                      <a
-                        href={form.responseLink}
-                        target="_blank"
-                        className="text-green-400 hover:text-green-600 flex items-center gap-1"
-                      >
-                        <ExternalLink size={16} /> Responses
-                      </a>
-                    )}
-                    <button
-                      onClick={() => handleDelete(form.id)}
-                      className="text-red-400 hover:text-red-600 flex items-center gap-1"
-                    >
-                      <Trash2 size={16} /> Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {/* Upcoming Forms */}
+      <FormsTable formsList={upcomingForms} title="Upcoming Forms" />
+
+      {/* Previous Forms */}
+      <FormsTable formsList={previousForms} title="Previous Forms" />
     </div>
   );
 }
