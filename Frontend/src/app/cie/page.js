@@ -20,7 +20,7 @@ export default function AnnouncementsPage() {
       });
 
       setAnnouncements(res.data.data);
-      console.log("data: ",res.data);
+      console.log("data: ",res.data.data);
     } catch (err) {
       console.error("Error fetching CIE announcements:", err);
     }
