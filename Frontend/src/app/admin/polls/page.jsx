@@ -121,7 +121,7 @@ export default function FacultyPolls() {
         {/* Upcoming Polls */}
         <div className="mb-10">
           <h2 className="text-2xl font-semibold text-white mb-4">
-            Upcoming Polls
+            My Polls
           </h2>
           {upcomingPolls.length === 0 ? (
             <p className="text-gray-400">No upcoming polls available.</p>
@@ -137,7 +137,7 @@ export default function FacultyPolls() {
         {/* Previous Polls */}
         <div>
           <h2 className="text-2xl font-semibold text-white mb-4">
-            Previous Polls
+            All Polls
           </h2>
           {previousPolls.length === 0 ? (
             <p className="text-gray-400">No previous polls available.</p>
